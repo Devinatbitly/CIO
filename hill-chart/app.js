@@ -87,6 +87,7 @@ function updateProgress(index, val) {
   features[index].progress = Math.min(100, Math.max(0, val || 0));
   renderTable();
   renderDots();
+  saveToMiro();
 }
 
 // ── Load from Google Sheet ───────────────────────────
@@ -115,6 +116,23 @@ async function loadSheet() {
   }
 }
 
+async function saveToMiro() {
+  await miro.board.setAppData('hillchart', {
+    features: features.map(f => ({
+      name: f.name,
+      progress: f.progress,
+      color: f.color,
+    }))
+  });
+}
+
+async function loadFromMiro() {
+  const saved = await miro.board.getAppData('hillchart');
+  return saved?.features || null;
+}
+
+
+
 // ── Stamp to Miro board ──────────────────────────────
 async function stampToBoard() {
   const svgEl = document.getElementById('hill');
@@ -131,4 +149,16 @@ miro.board.ui.on('icon:click', async () => {
 });
 
 buildCurve();
-loadSheet();
+
+(async () => {
+  const saved = await loadFromMiro();
+  if (saved) {
+    features = saved;
+    renderTable();
+    renderDots();
+    document.getElementById('status').textContent
+      = `Loaded ${features.length} features from board.`;
+  } else {
+    loadSheet();
+  }
+})();
