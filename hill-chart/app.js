@@ -1,4 +1,4 @@
-const SHEET_URL = 'https://script.google.com/a/macros/bit.ly/s/AKfycbyZj0kUzg-YYS5Y-8UL9NL-vwDb1KTu5hG2JGLuieuUDPRZHhrECUrxNBAyVLzIF5sApQ/exec';
+const SHEET_URL = 'https://script.google.com/a/macros/bit.ly/s/AKfycbyZj0kUzg-YYS5Y-8UL9NL-vwDb1KTu5hG2JGLuieuUDPRZHhrECUrxNBAyVLzIF5sApQ/exec?token=chauncey';
 
 const W = 700, H = 200, BASELINE = 182, HILL_HEIGHT = 145;
 const COLORS = [
