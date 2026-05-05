@@ -1,4 +1,4 @@
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbx9XYFkvZ6qOyy4759lB5CMVNtnqlkHeMcD75HI2-z0h_DnSveE2Ip40T3UEWcW3B4gKg/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyhpE6Q2xyVY0-yX3tnHjwnp77l1NlElZyIbOm36_Iq3elWJQbvVYqgyZQETMWlVV4xxw/exec';
 const TOKEN = 'chauncey';
 
 const W = 700, H = 200, BASELINE = 182, HILL_HEIGHT = 145;
