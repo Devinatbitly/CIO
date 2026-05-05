@@ -1,4 +1,5 @@
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyZj0kUzg-YYS5Y-8UL9NL-vwDb1KTu5hG2JGLuieuUDPRZHhrECUrxNBAyVLzIF5sApQ/exec?token=chauncey';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbx9XYFkvZ6qOyy4759lB5CMVNtnqlkHeMcD75HI2-z0h_DnSveE2Ip40T3UEWcW3B4gKg/exec';
+const TOKEN = 'chauncey';
 
 const W = 700, H = 200, BASELINE = 182, HILL_HEIGHT = 145;
 const COLORS = [
@@ -59,7 +60,7 @@ function renderDots() {
   });
 }
 
-// ── Table ────────────────────────────────────────────
+// ── Table ─────────────────────────────────────────────
 function renderTable() {
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
@@ -83,20 +84,21 @@ function renderTable() {
   });
 }
 
+// ── Update ────────────────────────────────────────────
 function updateProgress(index, val) {
   features[index].progress = Math.min(100, Math.max(0, val || 0));
   renderTable();
   renderDots();
-  saveToMiro();
+  saveToSheet(features[index]);
 }
 
-// ── Load from Google Sheet ───────────────────────────
+// ── Sheet: read ───────────────────────────────────────
 async function loadSheet() {
   const status = document.getElementById('status');
   status.textContent = 'Loading…';
 
   try {
-    const res = await fetch(SHEET_URL);
+    const res = await fetch(`${SHEET_URL}?token=${TOKEN}`);
     const data = await res.json();
 
     features = data
@@ -110,55 +112,32 @@ async function loadSheet() {
     renderTable();
     renderDots();
     status.textContent = `Loaded ${features.length} features from sheet.`;
-  } catch (e) {
+  } catch(e) {
     status.textContent = 'Could not load sheet. Check your URL.';
-    console.error(e);
   }
 }
 
-async function saveToMiro() {
-  await miro.board.setAppData('hillchart', {
-    features: features.map(f => ({
-      name: f.name,
-      progress: f.progress,
-      color: f.color,
-    }))
-  });
+// ── Sheet: write ──────────────────────────────────────
+async function saveToSheet(feature) {
+  const status = document.getElementById('status');
+  status.textContent = 'Saving…';
+
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        token: TOKEN,
+        name: feature.name,
+        progress: feature.progress,
+      }),
+    });
+    status.textContent = 'Saved.';
+    setTimeout(() => status.textContent = '', 2000);
+  } catch(err) {
+    status.textContent = 'Could not save to sheet.';
+  }
 }
 
-async function loadFromMiro() {
-  const saved = await miro.board.getAppData('hillchart');
-  return saved?.features || null;
-}
-
-
-
-// ── Stamp to Miro board ──────────────────────────────
-async function stampToBoard() {
-  const svgEl = document.getElementById('hill');
-  const svgString = new XMLSerializer().serializeToString(svgEl);
-  const blob = new Blob([svgString], { type: 'image/svg+xml' });
-  const url = URL.createObjectURL(blob);
-  await miro.board.createImage({ url, x: 0, y: 0, width: 700 });
-  URL.revokeObjectURL(url);
-}
-
-// ── Init ─────────────────────────────────────────────
-miro.board.ui.on('icon:click', async () => {
-  await miro.board.ui.openPanel({ url: 'index.html' });
-});
-
+// ── Init ──────────────────────────────────────────────
 buildCurve();
-
-(async () => {
-  const saved = await loadFromMiro();
-  if (saved) {
-    features = saved;
-    renderTable();
-    renderDots();
-    document.getElementById('status').textContent
-      = `Loaded ${features.length} features from board.`;
-  } else {
-    loadSheet();
-  }
-})();
+loadSheet();
