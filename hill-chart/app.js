@@ -97,8 +97,14 @@ async function loadSheet() {
   const status = document.getElementById('status');
   status.textContent = 'Loading…';
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
   try {
-    const res = await fetch(`${SHEET_URL}?token=${TOKEN}`);
+    const res = await fetch(`${SHEET_URL}?token=${TOKEN}`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
     const data = await res.json();
 
     features = data
@@ -113,7 +119,12 @@ async function loadSheet() {
     renderDots();
     status.textContent = `Loaded ${features.length} features from sheet.`;
   } catch(e) {
-    status.textContent = 'Could not load sheet. Check your URL.';
+    clearTimeout(timeout);
+    if (e.name === 'AbortError') {
+      status.textContent = 'Sheet took too long to respond. Try refreshing.';
+    } else {
+      status.textContent = 'Could not load sheet. Check your URL.';
+    }
   }
 }
 
